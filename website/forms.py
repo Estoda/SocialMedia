@@ -1,27 +1,35 @@
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
+from .models import User
 from django import forms
+from django.core.exceptions import ValidationError
+from PIL import Image
+
 
 class SignUpForm(UserCreationForm):
     email = forms.EmailField(
         label="",
         widget=forms.TextInput(
-            attrs={'class':"form-control", "placeholder": 'Email Address'}
+            attrs={"class": "form-control", "placeholder": "Email Address"}
         ),
     )
     first_name = forms.CharField(
         label="",
         max_length=100,
         widget=forms.TextInput(
-            attrs={'class':"form-control", "placeholder": 'First Name'}
+            attrs={"class": "form-control", "placeholder": "First Name"}
         ),
     )
     last_name = forms.CharField(
         label="",
         max_length=100,
         widget=forms.TextInput(
-            attrs={'class':"form-control", "placeholder": 'Last Name'}
+            attrs={"class": "form-control", "placeholder": "Last Name"}
         ),
+    )
+    profile_picture = forms.ImageField(
+        label="Profile Photo",
+        required=False,
+        widget=forms.FileInput(attrs={"class": "form-control-file"}),
     )
 
     class Meta:
@@ -33,6 +41,7 @@ class SignUpForm(UserCreationForm):
             "email",
             "password1",
             "password2",
+            "profile_picture",
         )
 
     def __init__(self, *args, **kwargs):
@@ -60,15 +69,28 @@ class SignUpForm(UserCreationForm):
         )
 
     def clean_email(self):
-        email = self.cleaned_data['email']
+        email = self.cleaned_data["email"]
+        if self.instance.pk:  # This means the form is for an existing user
+            return email
         if User.objects.filter(email=email).exists():
-            raise forms.ValidationError('Email already exists!')
+            raise forms.ValidationError("Email already exists!")
         return email
-    
+
     def clean_username(self):
-        username = self.cleaned_data['username']
+        username = self.cleaned_data["username"]
+        if self.instance.pk:  # This means the form is for an existing user
+            return username
         if User.objects.filter(username=username).exists():
-            raise forms.ValidationError('Username already exists!')
+            raise forms.ValidationError("Username already exists!")
         return username
 
-
+    def clean_profile_picture(self):
+        profile_picture = self.cleaned_data["profile_picture"]
+        if profile_picture:
+            img = Image.open(profile_picture)
+            width, height = img.size
+            if width != height:
+                raise ValidationError(
+                    "The image must be square (width and height must be equal)."
+                )
+        return profile_picture

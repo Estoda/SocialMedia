@@ -1,0 +1,26 @@
+{% extends 'base.html' %} {% block content %}
+<div class="card">
+  <div class="card-header">
+    <strong>{{ user.username }}</strong>
+  </div>
+  <div style="display: flex; justify-content: space-between" class="card-body">
+    <p class="card-text">
+      <strong>First Name: </strong>{{ user.first_name }} <br />
+      <strong>Last Name: </strong>{{ user.last_name }} <br />
+      <strong>Email: </strong>{{ user.email }} <br />
+      <strong>Created At: </strong>{{ user.date_joined }} <br />
+      <strong>ID: </strong>{{user.id}}
+    </p>
+    <div>
+      <img
+        style="width: 200px; height: 200px"
+        src="{{ user.profile_picture.url }}"
+        alt="Profile Picture"
+      />
+    </div>
+  </div>
+</div>
+<br />
+<br />
+<a href="{% url 'all-users' %}" class="btn btn-secondary">Back</a>
+{% endblock %}
