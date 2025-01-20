@@ -1,10 +1,10 @@
 {% extends 'base.html' %} {% block content %}
-<h1>All Users</h1>
+<h1>My Friends</h1>
 <br />
 <form class="mb=4" method="GET">
   {% csrf_token %}
 <div class="input-group">
-  <input type="text" name="search" class="form-control" value="{{ search_query }}", placeholder="Search users by username, email, name, bio, location....">
+  <input type="text" name="search" class="form-control" value="{{ search_query }}", placeholder="Search users by username, email, name, bio, location..">
   <button type="submit" class="btn btn-secondary">Search</button>
 </div>
 </form>
@@ -17,13 +17,6 @@
       <th scope="col">First Name</th>
       <th scope="col">Second Name</th>
       <th scope="col">Email</th>
-      {% if request.user.is_superuser %}
-      <th scope="col">Is Admin</th>
-      <th scope="col">Created At</th>
-      {% endif %}
-      <th scope="col">
-        Follow
-      </th>
       <th scope="col">ID</th>
     </tr>
   </thead>
@@ -35,26 +28,6 @@
       <td>{{ user.first_name }}</td>
       <td>{{user.last_name }}</td>
       <td>{{ user.email }}</td>
-      {% if request.user.is_superuser %}
-      <td style="text-align: center">
-        {% if user.is_superuser or user.is_staff %}
-        <i style="color: green" class="fa-solid fa-check"></i>
-        {% else %}
-        <i style="color: red" class="fa-solid fa-x"></i>
-        {% endif %}
-      </td>
-      <td>{{ user.date_joined }}</td>
-      {% endif %}
-      <td style="text-align: center">
-                {% if user.is_followed or user == request.user %}
-        <i style="color: green" class="fa-solid fa-check"></i>
-        {% else %}
-        <form action="{% url 'user' user.id %}" method="post">
-          {% csrf_token %}
-          <button class="btn btn-primary" type="submit">Follow</button>
-        </form>
-        {% endif %}
-      </td>
       <td><a {% if user == request.user %} href="{% url 'profile' %}" {% else %}href="{% url 'user' user.id %}"{% endif %} >{{ user.id }}</a></td>
     </tr>
     {% empty %}

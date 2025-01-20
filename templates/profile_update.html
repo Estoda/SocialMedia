@@ -18,7 +18,7 @@
     {% endif %} {{ form.as_p }}
     <br />
     <button type="submit" class="btn btn-primary">Update Profile</button>
-    <a href="{% url 'profile' %}" class="btn btn-secondary">Back</a>
+    <button class="btn btn-secondary" onclick="goBack()">Back</button>
   </form>
 </div>
 {% endblock %}

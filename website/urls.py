@@ -12,6 +12,9 @@ urlpatterns = [
     path("user/<int:pk>/", views.user, name="user"),
     path("profile/", views.profile, name="profile"),
     path("profile/update/", views.profile_update, name="profile-update"),
+    path("chat/<int:receiver_id>", views.chat, name="chat"),
+    path("friends/", views.friends_list, name="friends"),
+    path("create_post/", views.create_post, name="create-post"),
 ]
 
 

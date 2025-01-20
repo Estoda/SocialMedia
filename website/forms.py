@@ -1,8 +1,33 @@
 from django.contrib.auth.forms import UserCreationForm
-from .models import User
+from .models import User, Post, Comment
 from django import forms
 from django.core.exceptions import ValidationError
 from PIL import Image
+
+
+class PostForm(forms.ModelForm):
+    content = forms.CharField(
+        label="",
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",
+                "style": "resize: none;",
+                "placeholder": "What 's on your mind?",
+            }
+        ),
+    )
+    file = forms.FileField(
+        label="Photo",
+        required=False,
+        widget=forms.FileInput(attrs={"class": "form-control-file"}),
+    )
+
+    class Meta:
+        model = Post
+        fields = (
+            "content",
+            "file",
+        )
 
 
 class SignUpForm(UserCreationForm):
@@ -31,6 +56,20 @@ class SignUpForm(UserCreationForm):
         required=False,
         widget=forms.FileInput(attrs={"class": "form-control-file"}),
     )
+    bio = forms.CharField(
+        label="",
+        required=False,
+        widget=forms.Textarea(
+            attrs={"class": "form-control", "placeholder": "Bio", "rows": 3}
+        ),
+    )
+    location = forms.CharField(
+        label="",
+        max_length=100,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Location"}
+        ),
+    )
 
     class Meta:
         model = User
@@ -42,6 +81,8 @@ class SignUpForm(UserCreationForm):
             "password1",
             "password2",
             "profile_picture",
+            "bio",
+            "location",
         )
 
     def __init__(self, *args, **kwargs):

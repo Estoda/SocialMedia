@@ -4,23 +4,113 @@
     <strong>{{ user.username }}</strong>
   </div>
   <div style="display: flex; justify-content: space-between" class="card-body">
-    <p class="card-text">
+    <div class="card-text">
       <strong>First Name: </strong>{{ user.first_name }} <br />
       <strong>Last Name: </strong>{{ user.last_name }} <br />
       <strong>Email: </strong>{{ user.email }} <br />
+      <strong>Location: </strong>{{ user.location }} <br />
       <strong>Created At: </strong>{{ user.date_joined }} <br />
-      <strong>ID: </strong>{{user.id}}
-    </p>
-    <div>
+      <strong>ID: </strong>{{user.id}} <br />
+      <strong>Followers:</strong>
+      <a href="">{{ followers_num}}</a>
+      <br />
+      <strong>Followers: </strong>
+      <table class="table table-striped table-hover table-bordered">
+        <thead class="table-dark">
+          <tr>
+            <th scope="col">Picture</th>
+            <th scope="col">Username</th>
+            <th scope="col">First Name</th>
+            <th scope="col">Second Name</th>
+            <th scope="col">Email</th>
+            {% if request.user.is_superuser %}
+            {% endif %}
+            <th scope="col">ID</th>
+          </tr>
+        </thead>
+        <tbody>
+    {% for follower in followers %}
+    <tr>
+      <td ><img style="width:50px;height: 50px;border-radius: 50%;" src="{{ follower.follower.profile_picture.url }}" alt=""></td>
+      <td {% if follower.follower == request.user %} style="color:red;" {% endif %}>{{ follower.follower.username }}</td>
+      <td>{{ follower.follower.first_name }}</td>
+      <td>{{follower.follower.last_name }}</td>
+      <td>{{ follower.follower.email }}</td>
+      <td><a {% if user == request.user %} href="{% url 'profile' %}" {% else %}href="{% url 'user' follower.follower.id %}"{% endif %} >{{ follower.follower.id }}</a></td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="4">No users found.</td>
+    </tr>
+      {% endfor %}</tbody>
+    </table>
+      <strong>Following:</strong>
+      <a href="">{{ followeds_num}}</a>
+      <br />
+      <strong>Followed by {{ user.username }}: </strong>
+      <table class="table table-striped table-hover table-bordered">
+        <thead class="table-dark">
+          <tr>
+            <th scope="col">Picture</th>
+            <th scope="col">Username</th>
+            <th scope="col">First Name</th>
+            <th scope="col">Second Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">ID</th>
+          </tr>
+        </thead>
+        <tbody>
+    {% for followed in followeds %}
+    <tr>
+      <td ><img style="width:50px;height: 50px;border-radius: 50%;" src="{{ followed.followed.profile_picture.url }}" alt=""></td>
+      <td {% if followed.followed == request.user %} style="color:red;" {% endif %}>{{ followed.followed.username }}</td>
+      <td>{{ followed.followed.first_name }}</td>
+      <td>{{followed.followed.last_name }}</td>
+      <td>{{ followed.followed.email }}</td>
+      <td><a {% if user == request.user %} href="{% url 'profile' %}" {% else %}href="{% url 'user' followed.followed.id %}"{% endif %} >{{ followed.followed.id }}</a></td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="4">No users found.</td>
+    </tr>
+      {% endfor %}</tbody>
+    </table>
+      <br />
+      <br /><br />
+      <strong>
+        {% if request.user.is_authenticated and request.user != user %}
+        <form method="post">
+          {% csrf_token %} {% if is_following %}
+          <button class="btn btn-primary" type="submit">Unfollow</button>
+          {% else %}
+          <button class="btn btn-primary" type="submit">Follow</button>
+          {% endif %}
+        </form>
+        {% endif %}
+      </strong>
+      <br>
+      <strong>
+        <form action="{% url 'chat' user.id %}" method="post">
+          {% csrf_token %}
+        <button class="btn btn-primary" type="submit">Chat</button>
+      </form>
+      </strong>
+    </div>
+
+    <div style="max-width: 200px;">
       <img
-        style="width: 200px; height: 200px"
+        style="width: 200px; height: 200px;border-radius: 6px;"
         src="{{ user.profile_picture.url }}"
         alt="Profile Picture"
       />
+      <div style="color:gray; text-align: center;">
+        {{ user.bio }}
+      </div>
     </div>
   </div>
 </div>
 <br />
 <br />
-<a href="{% url 'all-users' %}" class="btn btn-secondary">Back</a>
+
+<button class="btn btn-secondary" onclick="goBack()">Back</button>
 {% endblock %}

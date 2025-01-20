@@ -1,0 +1,73 @@
+{% extends 'base.html' %} {% block content %}
+
+<div class="card shadow-sm">
+  <div class="card-header bg-secondary text-white">
+    <h5>
+      Chat with
+      <a style="color: white" href="{% url 'user' receiver.id %}"
+        >{{ receiver.username }}</a
+      >
+    </h5>
+  </div>
+  <div class="card-body">
+    <div class="chat-box">
+      {% for message in msg %} {% if message.sender == request.user %}
+      <div class="chat-message sent">
+        {{ message.message }}
+        <br />
+        <p style="font-size: 10px; margin: 0; color: gray">
+          {{ message.timestamp }}
+        </p>
+      </div>
+      {% else %}
+      <div class="chat-message received">
+        {{ message.message }}
+        <br />
+        <p style="font-size: 10px; margin: 0; color: gray">
+          {{ message.timestamp }}
+        </p>
+      </div>
+      {% endif %} {% empty %}
+      <p>No messages yet.</p>
+      <p>Say Hello to {{ receiver.username }}</p>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="card-footer chat-footer">
+    <form id="chat-form" method="post">
+      {% csrf_token %}
+      <div class="input-group">
+        <input
+          name="message"
+          type="text"
+          class="form-control"
+          id="chat-input"
+          placeholder="Type your message..."
+          required
+        />
+        <button class="btn btn-primary" type="submit">Send</button>
+      </div>
+    </form>
+  </div>
+</div>
+<br />
+<button class="btn btn-secondary" onclick="goBack()">Back</button>
+<style>
+  .chat-message {
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+  .sent {
+    background-color: #d1e7dd;
+    margin-right: auto;
+    width: fit-content;
+  }
+  .received {
+    background-color: #f8d7da;
+    margin-left: auto;
+    width: fit-content;
+  }
+</style>
+
+{% endblock %}
