@@ -15,6 +15,9 @@ urlpatterns = [
     path("chat/<int:receiver_id>", views.chat, name="chat"),
     path("friends/", views.friends_list, name="friends"),
     path("create_post/", views.create_post, name="create-post"),
+    path("post_detail/<int:post_id>", views.post_detail, name="post-detail"),
+    path("like_post/<int:post_id>/", views.like_post, name="like-post"),
+    path("dislike_post/<int:post_id>/", views.dislike_post, name="dislike-post"),
 ]
 
 

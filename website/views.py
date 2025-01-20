@@ -5,6 +5,7 @@ from .forms import SignUpForm, PostForm
 from .models import User, UserFollow, Message, Post, Comment
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Q, OuterRef, Subquery, Exists
+from django.urls import reverse
 
 
 def home(request):
@@ -13,7 +14,6 @@ def home(request):
         password = request.POST["password"]
         # Authenticate
         user = authenticate(request, username=username, password=password)
-
         if user is not None:
             login(request, user)
             messages.success(request, "You have been logged in!")
@@ -50,8 +50,10 @@ def like_post(request, post_id):
     if request.user in post.likes.all():
         post.likes.remove(request.user)
     else:
+        if request.user in post.dislikes.all():
+            post.dislikes.remove(request.user)
         post.likes.add(request.user)
-    return redirect("post_detail", post.id)
+    return redirect(f"{reverse('home')}#post-{post_id}")
 
 
 def dislike_post(request, post_id):
@@ -59,8 +61,10 @@ def dislike_post(request, post_id):
     if request.user in post.dislikes.all():
         post.dislikes.remove(request.user)
     else:
+        if request.user in post.likes.all():
+            post.likes.remove(request.user)
         post.dislikes.add(request.user)
-    return redirect("post_detail", post.id)
+    return redirect(f"{reverse('home')}#post-{post_id}")
 
 
 def logout_user(request):
