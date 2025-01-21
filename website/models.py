@@ -50,6 +50,7 @@ class Post(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     likes = models.ManyToManyField(User, related_name="likes", blank=True)
+    views = models.ManyToManyField(User, related_name="viewed_posts", blank=True)
     dislikes = models.ManyToManyField(User, related_name="dislikes", blank=True)
     file = models.FileField(upload_to="post_files/", blank=True, null=True)
 

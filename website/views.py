@@ -6,6 +6,13 @@ from .models import User, UserFollow, Message, Post, Comment
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Q, OuterRef, Subquery, Exists
 from django.urls import reverse
+from django.http import JsonResponse
+
+
+def mark_post_viewed(request, post_id):
+    post = Post.objects.get(id=post_id)
+    post.views.add(request.user)
+    return JsonResponse({"status": "success"})
 
 
 def home(request):
@@ -22,8 +29,24 @@ def home(request):
             messages.error(request, "Invalid username or password!")
             return redirect("home")
     else:
-        posts = Post.objects.all()
-        return render(request, "home.html", {"posts": posts})
+        if request.user.is_authenticated:
+            search_query = request.GET.get("search", "")
+            posts = Post.objects.exclude(views=request.user)
+            if len(posts) == 0:
+                posts = Post.objects.all()
+
+            if len(search_query) > 1:
+                posts = Post.objects.filter(
+                    Q(user__username__icontains=search_query)
+                    | Q(content__icontains=search_query)
+                )
+                searching = True
+                return render(
+                    request, "home.html", {"posts": posts, "searching": searching}
+                )
+            return render(request, "home.html", {"posts": posts})
+
+        return render(request, "home.html")
 
 
 def create_post(request):
@@ -43,6 +66,22 @@ def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     comments = post.comments.all()
     return render(request, "post_detail.html", {"post": post, "comments": comments})
+
+
+def edit_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    if request.user != post.user:
+        messages.error(request, "You do not have permission to edit this post!")
+        return redirect("post_detail", post_id)
+    if request.method == "POST":
+        form = PostForm(request.POST, request.FILES, instance=post)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Your post has been updated successfully!")
+            return redirect("post-detail", post_id)
+    else:
+        form = PostForm(instance=post)
+    return render(request, "edit_post.html", {"form": form})
 
 
 def like_post(request, post_id):
@@ -65,6 +104,49 @@ def dislike_post(request, post_id):
             post.likes.remove(request.user)
         post.dislikes.add(request.user)
     return redirect(f"{reverse('home')}#post-{post_id}")
+
+
+def add_comment(request, post_id):
+    if not request.user.is_authenticated:
+        messages.error(request, "You must be logged in to add a comment to a post.")
+        return redirect("login")
+
+    post = get_object_or_404(Post, id=post_id)
+    comment = request.POST.get("comment", "")
+    if comment:
+        Comment.objects.create(post=post, user=request.user, content=comment)
+        return redirect(f"{reverse('home')}#post-{post_id}")
+    messages.error(
+        request,
+        "You must enter a comment to add it to the post.",
+    )
+    return redirect("post_detail", post_id=post_id)
+
+
+def like_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if request.user in comment.likes.all():
+        comment.likes.remove(request.user)
+    else:
+        if request.user in comment.dislikes.all():
+            comment.dislikes.remove(request.user)
+        comment.likes.add(request.user)
+    return redirect(
+        f"{reverse('post-detail', args=[comment.post.id])}#comment-{comment.id}"
+    )
+
+
+def dislike_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if request.user in comment.dislikes.all():
+        comment.dislikes.remove(request.user)
+    else:
+        if request.user in comment.likes.all():
+            comment.likes.remove(request.user)
+        comment.dislikes.add(request.user)
+    return redirect(
+        f"{reverse('post-detail', args=[comment.post.id])}#comment-{comment.id}"
+    )
 
 
 def logout_user(request):
@@ -137,6 +219,8 @@ def user(request, pk):
     followers_num = followers.count()
     followeds_num = followeds.count()
 
+    posts = Post.objects.filter(user=user)
+
     if request.method == "POST":
         if is_following:
             UserFollow.objects.filter(follower=request.user, followed=user).delete()
@@ -157,6 +241,7 @@ def user(request, pk):
                 "followeds": followeds,
                 "followers_num": followers_num,
                 "followeds_num": followeds_num,
+                "posts": posts,
             },
         )
     else:
@@ -174,6 +259,8 @@ def profile(request):
         ).exists()
         followers_num = followers.count()
         followeds_num = followeds.count()
+
+        posts = Post.objects.filter(user=user)
         return render(
             request,
             "profile.html",
@@ -184,6 +271,7 @@ def profile(request):
                 "followeds": followeds,
                 "followers_num": followers_num,
                 "followeds_num": followeds_num,
+                "posts": posts,
             },
         )
 

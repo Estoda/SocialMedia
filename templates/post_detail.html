@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block content %}
+<div
+  id="post-{{ post.id }}"
+  style="max-width: 1000px; margin: 0 auto"
+  class="card post-card"
+>
+  {% if post.file %}
+  {% if post.file.url|lower|slice:"-4:" == ".jpg" or post.file.url|lower|slice:"-5:" == ".jpeg" or post.file.url|lower|slice:"-4:" == ".png" or post.file.url|lower|slice:"-4:" == ".gif" %}
+  <img
+    src="{{ post.file.url }}"
+    alt="Post Image"
+    class="card-img-top post-image"
+  />
+  {% elif post.file.url|lower|slice:"-4:" == ".pdf" %}
+    <iframe src="{{ post.file.url }}" width="100%" height="500px" style="border: none;">
+      Your browser does not support PDF embedding.
+    </iframe>
+    <a href="{{ post.file.url }}" download class="btn btn-secondary mt-2">
+      <i class="fa-solid fa-download"></i> Download PDF
+    </a>
+    {% elif post.file.url|lower|slice:"-4:" == ".mp4" or post.file.url|lower|slice:"-5:" == ".webm" or post.file.url|lower|slice:"-4:" == ".ogg" %}
+            <video controls class="card-img-top post-video">
+          <source src="{{ post.file.url }}" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+  {% endif %}
+  {% endif %}
+  <div class="card-body">
+    <h5 class="card-title">{{ post.user.username }}</h5>
+    <p class="text-muted mb-1">Posted on {{ post.created_at }}</p>
+    <p class="card-text">{{ post.content }}</p>
+  </div>
+  <div class="card-footer bg-white">
+    <div class="d-flex justify-content-between align-items-center">
+      <div
+        style="display: flex; flex-wrap: wrap; gap: 5px"
+        class="post-actions"
+      >
+        <form action="{% url 'like-post' post.id %}" method="post">
+          {% csrf_token %} {% if request.user in post.likes.all %}
+          <button class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-heart"></i> Like
+          </button>
+          {% else %}
+          <button class="btn btn-outline-primary btn-sm">
+            <i class="fa-solid fa-heart"></i> Like
+          </button>
+          {% endif %}
+        </form>
+        <form action="{% url 'dislike-post' post.id %}" method="post">
+          {% csrf_token %} {% if request.user in post.dislikes.all %}
+          <button class="btn btn-danger btn-sm">
+            <i class="fa-solid fa-thumbs-down"></i> Dislike
+          </button>
+          {% else %}
+          <button class="btn btn-outline-danger btn-sm">
+            <i class="fa-solid fa-thumbs-down"></i> Dislike
+          </button>
+          {% endif %}
+        </form>
+      </div>
+      <span class="text-muted small">
+        {{ post.total_likes }} Likes | {{ post.total_dislikes }} Dislikes | {{ post.total_comments }} Comments
+      </span>
+    </div>
+  </div>
+</div>
+
+<div style="max-width: 1000px; margin: 20px auto">
+  <h4>Comments</h4>
+
+  <!-- Comment Form -->
+  <form id="comment-form" method="post" action="{% url 'add-comment' post.id %}">
+    {% csrf_token %}
+    <div class="mb-3">
+      <textarea
+        name="comment"
+        class="form-control"
+        placeholder="Add a comment..."
+        rows="3"
+        required
+      ></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+
+  <!-- List of Comments -->
+  <div id="comments-list" class="mt-4">
+    {% for comment in post.comments.all %}
+    <div id="comment-{{ comment.id }}" class="card mb-2">
+      <div class="card-body">
+        <h6 class="card-title"><img style="width:50px; border-radius: 50%;margin-right: 10px;" src="{{ comment.user.profile_picture.url }}" alt="">{{ comment.user.username }}</h6>
+        <p class="card-text">{{ comment.content }}</p>
+        <p class="text-muted small">{{ comment.created_at }}</p>
+      </div>
+      <div class="d-flex justify-content-between align-items-center">
+      <div
+        style="display: flex; flex-wrap: wrap; gap: 5px"
+        class="post-actions"
+      >
+        <form action="{% url 'like-comment' comment.id %}" method="comment">
+          {% csrf_token %} {% if request.user in comment.likes.all %}
+          <button class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-heart"></i> Like
+          </button>
+          {% else %}
+          <button class="btn btn-outline-primary btn-sm">
+            <i class="fa-solid fa-heart"></i> Like
+          </button>
+          {% endif %}
+        </form>
+        <form action="{% url 'dislike-comment' comment.id %}" method="comment">
+          {% csrf_token %} {% if request.user in comment.dislikes.all %}
+          <button class="btn btn-danger btn-sm">
+            <i class="fa-solid fa-thumbs-down"></i> Dislike
+          </button>
+          {% else %}
+          <button class="btn btn-outline-danger btn-sm">
+            <i class="fa-solid fa-thumbs-down"></i> Dislike
+          </button>
+          {% endif %}
+        </form>
+      </div>
+      <span class="text-muted small">
+        {{ comment.total_likes }} Likes | {{ comment.total_dislikes }} Dislikes
+      </span>
+    </div>
+    </div>
+    {% empty %}
+    <p>No comments yet.</p>
+    {% endfor %}
+  </div>
+</div>
+<br>
+<br>
+<button class="btn btn-secondary" onclick="goBack()">Back</button>
+{% endblock %}
