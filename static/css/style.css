@@ -6,6 +6,11 @@ nav a:hover img {
     transform: scale(1.1);
 }
 
+body .container {
+    min-height: calc(100vh - 60px);
+    padding-bottom: 50px;
+}
+
 footer {
     background-color: #191919;
     color: white;
